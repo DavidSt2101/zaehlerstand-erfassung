@@ -1,12 +1,51 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ZählerApp Demo</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zählerstand eingeben</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
+    form { background: white; padding: 2em; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    label, input, button { display: block; width: 100%; margin-bottom: 1em; }
+    button { background: #007bff; color: white; border: none; padding: 0.75em; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <form id="zaehlerForm">
+    <h2>Zählerstand erfassen</h2>
+    <label>Zähler-ID:</label>
+    <input type="text" id="zaehler_id" name="zaehler_id" readonly />
+
+    <label for="zaehlerstand">Zählerstand:</label>
+    <input type="number" id="zaehlerstand" name="zaehlerstand" required />
+
+    <button type="submit">Absenden</button>
+  </form>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const zaehlerId = urlParams.get('id');
+    document.getElementById('zaehler_id').value = zaehlerId;
+
+    document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const stand = document.getElementById('zaehlerstand').value;
+
+      await fetch('https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zaehler_id: zaehlerId,
+          zaehlerstand: stand
+        })
+      });
+
+      alert('Zählerstand erfolgreich übermittelt.');
+      document.getElementById('zaehlerstand').value = '';
+    });
+  </script>
+</body>
 </html>
