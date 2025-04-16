@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zählerstände – Übersicht</title>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      color: #222;
+    }
+    header {
+      text-align: center;
+      background: white;
+      padding: 1em 1em 0.5em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    header img {
+      max-height: 80px;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin: 0.5em 0 0;
+    }
+    main {
+      padding: 1em;
+      max-width: 960px;
+      margin: auto;
+    }
+    select {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 1em auto;
+      padding: 0.6em;
+      font-size: 1em;
+    }
+    #table_div, #chart_div {
+      margin-top: 2em;
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.2em; }
+      select { font-size: 1em; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="wappen.png" alt="Stadtwappen" />
+    <h1>Zählerstand-Übersicht</h1>
+  </header>
+
+  <main>
+    <select id="filter">
+      <option value="">Alle Zähler</option>
+      <option value="strom-rathaus">Rathaus Strom</option>
+      <option value="wasser-rathaus">Rathaus Wasser</option>
+      <option value="gas-rathaus">Rathaus Gas</option>
+    </select>
+
+    <div id="chart_div"></div>
+    <div id="table_div"></div>
+  </main>
+
+  <script>
+    const sheetId = "1FQRGGgJsAroNv29bPdziKyd6MXmb3n-pKg0ICCh5hP4";
+    const sheetName = "Tabellenblatt1";
+    const queryUrl = "https://docs.google.com/spreadsheets/d/" + sheetId + "/gviz/tq?sheet=" + sheetName;
+
+    const zaehlernamen = {
+      'strom-rathaus': 'Rathaus Strom',
+      'wasser-rathaus': 'Rathaus Wasser',
+      'gas-rathaus': 'Rathaus Gas'
+    };
+
+    google.charts.load('current', { packages: ['table', 'corechart'] });
+    google.charts.setOnLoadCallback(draw);
+
+    document.getElementById('filter').addEventListener('change', draw);
+
+    function formatGerman(value) {
+      let number = parseFloat(value.toString().replace(",", "."));
+      if (isNaN(number)) return "-";
+      return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
+    }
+
+    function draw() {
+      fetch(queryUrl)
+        .then(res => res.text())
+        .then(rep => {
+          const data = JSON.parse(rep.substr(47).slice(0, -2));
+          const rows = data.table.rows.map(r => {
+            let zeit = "-";
+            let dateObj = null;
+            if (r.c[0] && r.c[0].v) {
+              dateObj = new Date(r.c[0].v);
+              if (!isNaN(dateObj)) {
+                zeit = dateObj.toLocaleDateString();
+              }
+            }
+            const zaehler = r.c[1]?.v || "-";
+            const rawStand = r.c[2]?.v;
+            const stand = rawStand != null ? formatGerman(rawStand) : "-";
+            return [zeit, zaehlernamen[zaehler] || zaehler, stand, dateObj, parseFloat(rawStand)];
+          });
+
+          const filterValue = document.getElementById('filter').value;
+          const readableName = zaehlernamen[filterValue] || "Alle Zähler";
+          const filtered = filterValue
+            ? rows.filter(r => r[1] === zaehlernamen[filterValue])
+            : rows;
+
+          const tableData = new google.visualization.DataTable();
+          tableData.addColumn('string', 'Datum');
+          tableData.addColumn('string', 'Zähler');
+          tableData.addColumn('string', 'Zählerstand');
+          tableData.addRows(filtered.map(r => [r[0], r[1], r[2]]));
+          const table = new google.visualization.Table(document.getElementById('table_div'));
+          table.draw(tableData, { showRowNumber: true, width: '100%', height: 'auto' });
+
+          const chartDiv = document.getElementById('chart_div');
+          chartDiv.innerHTML = "";
+          if (filterValue) {
+            const chartData = new google.visualization.DataTable();
+            chartData.addColumn('date', 'Datum');
+            chartData.addColumn('number', readableName);
+            const chartRows = filtered
+              .filter(r => r[3] && !isNaN(r[4]))
+              .sort((a, b) => a[3] - b[3])
+              .map(r => [r[3], r[4]]);
+            chartData.addRows(chartRows);
+
+            const chart = new google.visualization.ColumnChart(chartDiv);
+            chart.draw(chartData, {
+              title: 'Zählerstand – ' + readableName,
+              hAxis: { title: 'Datum', format: 'dd.MM.' },
+              vAxis: { title: 'Zählerstand' },
+              legend: 'none',
+              height: 400
+            });
+          }
+        });
+    }
+  </script>
+</body>
+</html>
