@@ -7,7 +7,7 @@
   <style>
     body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
     form { background: white; padding: 2em; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    label, input, button { display: block; width: 100%; margin-bottom: 1em; }
+    label, input, select, button { display: block; width: 100%; margin-bottom: 1em; }
     button { background: #007bff; color: white; border: none; padding: 0.75em; border-radius: 5px; cursor: pointer; }
     button:hover { background: #0056b3; }
   </style>
@@ -15,8 +15,14 @@
 <body>
   <form id="zaehlerForm">
     <h2>Zählerstand erfassen</h2>
-    <label>Zähler-ID:</label>
-    <input type="text" id="zaehler_id" name="zaehler_id" readonly />
+
+    <label for="zaehler_id">Zähler wählen:</label>
+    <select id="zaehler_id" name="zaehler_id" required>
+      <option value="">Bitte wählen</option>
+      <option value="strom-rathaus">Strom Rathaus</option>
+      <option value="wasser-rathaus">Wasser Rathaus</option>
+      <option value="gas-rathaus">Gas Rathaus</option>
+    </select>
 
     <label for="zaehlerstand">Zählerstand:</label>
     <input type="number" id="zaehlerstand" name="zaehlerstand" required />
@@ -25,13 +31,15 @@
   </form>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const zaehlerId = urlParams.get('id');
-    document.getElementById('zaehler_id').value = zaehlerId;
-
     document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      const zaehlerId = document.getElementById('zaehler_id').value;
       const stand = document.getElementById('zaehlerstand').value;
+
+      if (!zaehlerId) {
+        alert('Bitte einen Zähler auswählen.');
+        return;
+      }
 
       await fetch('https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec', {
         method: 'POST',
@@ -45,6 +53,7 @@
 
       alert('Zählerstand erfolgreich übermittelt.');
       document.getElementById('zaehlerstand').value = '';
+      document.getElementById('zaehler_id').value = '';
     });
   </script>
 </body>
