@@ -80,16 +80,23 @@
   </div>
 
   <script>
+    const input = document.getElementById("zaehlerstand");
+
+    input.addEventListener("input", function () {
+      let val = this.value.replace(/[^0-9,]/g, "");
+      let parts = val.split(",");
+      let intPart = parts[0].replace(/^0+/, '') || "0";
+      intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      this.value = parts.length > 1 ? intPart + "," + parts[1].substring(0, 2) : intPart;
+    });
+
     document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const zaehlerId = document.getElementById('zaehler_id').value;
-      let standRaw = document.getElementById('zaehlerstand').value.trim();
+      let standRaw = input.value.trim();
 
-      // Anzeigeformat für Bestätigung (deutsch)
       const displayFormat = standRaw;
-
-      // Umwandlung: Punkt raus, Komma durch Punkt ersetzen
       let standNumeric = standRaw.replace(/\./g, "").replace(",", ".");
 
       if (isNaN(parseFloat(standNumeric))) {
@@ -116,15 +123,13 @@
         })
       });
 
-      // Zeige grünen Haken
       const overlay = document.getElementById('overlay');
       overlay.style.display = 'flex';
-
       overlay.addEventListener('click', () => {
         overlay.style.display = 'none';
       });
 
-      document.getElementById('zaehlerstand').value = '';
+      input.value = '';
     });
   </script>
 </body>
