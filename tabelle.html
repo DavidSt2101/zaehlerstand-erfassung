@@ -22,12 +22,9 @@
       padding: 0.6em;
       font-size: 1em;
     }
-    #table_div, #chart_div {
+    #table_div {
       max-width: 1000px;
       margin: auto;
-    }
-    #chart_div {
-      margin-top: 2em;
     }
   </style>
 </head>
@@ -41,7 +38,6 @@
   </select>
 
   <div id="table_div"></div>
-  <div id="chart_div"></div>
 
   <script>
     const sheetId = "1FQRGGgJsAroNv29bPdziKyd6MXmb3n-pKg0ICCh5hP4";
@@ -54,28 +50,31 @@
       'gas-rathaus': 'Rathaus Gas'
     };
 
-    google.charts.load('current', { packages: ['table', 'corechart'] });
-    google.charts.setOnLoadCallback(draw);
+    google.charts.load('current', { packages: ['table'] });
+    google.charts.setOnLoadCallback(drawTable);
 
-    document.getElementById('filter').addEventListener('change', draw);
+    document.getElementById('filter').addEventListener('change', drawTable);
 
-    function draw() {
+    function formatGerman(number) {
+      return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
+    }
+
+    function drawTable() {
       fetch(queryUrl)
         .then(res => res.text())
         .then(rep => {
           const data = JSON.parse(rep.substr(47).slice(0, -2));
           const rows = data.table.rows.map(r => {
             let zeit = "-";
-            let dateObj = null;
             if (r.c[0] && r.c[0].v) {
-              dateObj = new Date(r.c[0].v);
-              if (!isNaN(dateObj)) {
-                zeit = dateObj.toLocaleDateString();
+              const timestamp = new Date(r.c[0].v);
+              if (!isNaN(timestamp)) {
+                zeit = timestamp.toLocaleDateString();
               }
             }
             const zaehler = r.c[1]?.v || "-";
-            const stand = r.c[2]?.v || null;
-            return [zeit, zaehlernamen[zaehler] || zaehler, stand, dateObj];
+            const stand = typeof r.c[2]?.v === "number" ? formatGerman(r.c[2].v) : "-";
+            return [zeit, zaehlernamen[zaehler] || zaehler, stand];
           });
 
           const filterValue = document.getElementById('filter').value;
@@ -83,38 +82,14 @@
             ? rows.filter(r => r[1] === zaehlernamen[filterValue])
             : rows;
 
-          // Tabelle zeichnen
           const dataTable = new google.visualization.DataTable();
           dataTable.addColumn('string', 'Datum');
           dataTable.addColumn('string', 'Zähler');
-          dataTable.addColumn('number', 'Zählerstand');
-          dataTable.addRows(filteredRows.map(r => [r[0], r[1], r[2]]));
+          dataTable.addColumn('string', 'Zählerstand');
+          dataTable.addRows(filteredRows);
 
           const table = new google.visualization.Table(document.getElementById('table_div'));
           table.draw(dataTable, { showRowNumber: true, width: '100%', height: 'auto' });
-
-          // Diagramm zeichnen
-          if (filterValue) {
-            const chartData = new google.visualization.DataTable();
-            chartData.addColumn('date', 'Datum');
-            chartData.addColumn('number', 'Zählerstand');
-            chartData.addRows(
-              filteredRows
-                .filter(r => r[3] instanceof Date && !isNaN(r[3]) && typeof r[2] === 'number')
-                .map(r => [r[3], r[2]])
-            );
-
-            const chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-            chart.draw(chartData, {
-              title: `Zählerverlauf: ${zaehlernamen[filterValue]}`,
-              height: 400,
-              hAxis: { title: 'Datum', format: 'dd.MM.yyyy' },
-              vAxis: { title: 'Zählerstand' },
-              legend: 'none'
-            });
-          } else {
-            document.getElementById('chart_div').innerHTML = '';
-          }
         });
     }
   </script>
