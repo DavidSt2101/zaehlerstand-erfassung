@@ -39,7 +39,7 @@
       border-radius: 6px;
       box-sizing: border-box;
     }
-    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
@@ -47,13 +47,29 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
-    button {
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: -1em;
+      margin-bottom: 1.5em;
+    }
+    .keypad button {
+      font-size: 1.4em;
+      padding: 0.5em;
+      background: #ddd;
+      border: none;
+      border-radius: 6px;
+    }
+    .keypad button:hover {
+      background: #ccc;
+    }
+    button[type=submit] {
       background: #007bff;
       color: white;
-      border: none;
       font-weight: bold;
     }
-    button:hover {
+    button[type=submit]:hover {
       background: #0056b3;
     }
     @media (min-width: 480px) {
@@ -76,7 +92,22 @@
     </select>
 
     <label for="zaehlerstand">Zählerstand:</label>
-    <input type="text" inputmode="decimal" pattern="[0-9]+([\.,][0-9]{1,2})?" id="zaehlerstand" name="zaehlerstand" required />
+    <input type="text" inputmode="decimal" pattern="[0-9]+([\.,][0-9]{1,2})?" id="zaehlerstand" name="zaehlerstand" required readonly />
+
+    <div class="keypad">
+      <button type="button">1</button>
+      <button type="button">2</button>
+      <button type="button">3</button>
+      <button type="button">4</button>
+      <button type="button">5</button>
+      <button type="button">6</button>
+      <button type="button">7</button>
+      <button type="button">8</button>
+      <button type="button">9</button>
+      <button type="button">,</button>
+      <button type="button">0</button>
+      <button type="button" id="backspace">←</button>
+    </div>
 
     <button type="submit">Absenden</button>
   </form>
@@ -88,10 +119,21 @@
       'gas-rathaus': 'Rathaus Gas'
     };
 
+    const input = document.getElementById('zaehlerstand');
+    document.querySelectorAll('.keypad button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.id === 'backspace') {
+          input.value = input.value.slice(0, -1);
+        } else {
+          input.value += btn.textContent;
+        }
+      });
+    });
+
     document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const zaehlerId = document.getElementById('zaehler_id').value;
-      const stand = document.getElementById('zaehlerstand').value;
+      const stand = input.value;
 
       if (!zaehlerId) {
         alert('Bitte einen Zähler auswählen.');
@@ -115,7 +157,7 @@
       });
 
       alert('Zählerstand erfolgreich übermittelt.');
-      document.getElementById('zaehlerstand').value = '';
+      input.value = '';
       document.getElementById('zaehler_id').value = '';
     });
   </script>
