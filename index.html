@@ -5,11 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zählerstand eingeben</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
-    form { background: white; padding: 2em; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    label, input, select, button { display: block; width: 100%; margin-bottom: 1em; }
-    button { background: #007bff; color: white; border: none; padding: 0.75em; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #0056b3; }
+    body {
+      font-family: sans-serif;
+      padding: 1em;
+      margin: 0;
+      background: #f4f4f4;
+    }
+    form {
+      background: white;
+      padding: 1.5em;
+      border-radius: 10px;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 1em auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      font-size: 1.5em;
+      text-align: center;
+    }
+    label {
+      font-size: 1em;
+      margin-bottom: 0.5em;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      font-size: 1.2em;
+      padding: 0.75em;
+      margin-bottom: 1.2em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    @media (min-width: 480px) {
+      form {
+        max-width: 400px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -19,18 +70,24 @@
     <label for="zaehler_id">Zähler wählen:</label>
     <select id="zaehler_id" name="zaehler_id" required>
       <option value="">Bitte wählen</option>
-      <option value="strom-rathaus">Strom Rathaus</option>
-      <option value="wasser-rathaus">Wasser Rathaus</option>
-      <option value="gas-rathaus">Gas Rathaus</option>
+      <option value="strom-rathaus">Rathaus Strom</option>
+      <option value="wasser-rathaus">Rathaus Wasser</option>
+      <option value="gas-rathaus">Rathaus Gas</option>
     </select>
 
     <label for="zaehlerstand">Zählerstand:</label>
-    <input type="number" id="zaehlerstand" name="zaehlerstand" required />
+    <input type="text" inputmode="decimal" pattern="[0-9]+([\.,][0-9]{1,2})?" id="zaehlerstand" name="zaehlerstand" required />
 
     <button type="submit">Absenden</button>
   </form>
 
   <script>
+    const zaehlerNamen = {
+      'strom-rathaus': 'Rathaus Strom',
+      'wasser-rathaus': 'Rathaus Wasser',
+      'gas-rathaus': 'Rathaus Gas'
+    };
+
     document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const zaehlerId = document.getElementById('zaehler_id').value;
@@ -41,13 +98,19 @@
         return;
       }
 
+      const anzeigeName = zaehlerNamen[zaehlerId] || zaehlerId;
+      const bestaetigt = confirm(`Du hast den Zählerstand "${stand}" für "${anzeigeName}" eingegeben. Ist das korrekt?`);
+      if (!bestaetigt) {
+        return;
+      }
+
       await fetch('https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec', {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           zaehler_id: zaehlerId,
-          zaehlerstand: stand
+          zaehlerstand: stand.replace(',', '.')
         })
       });
 
