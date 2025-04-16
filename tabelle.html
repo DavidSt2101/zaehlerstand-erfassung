@@ -41,7 +41,7 @@
 
   <script>
     const sheetId = "1FQRGGgJsAroNv29bPdziKyd6MXmb3n-pKg0ICCh5hP4";
-    const sheetName = "Tabellenblatt1"; // ggf. anpassen
+    const sheetName = "Tabellenblatt1";
     const queryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=${sheetName}`;
 
     const zaehlernamen = {
@@ -61,28 +61,25 @@
         .then(rep => {
           const data = JSON.parse(rep.substr(47).slice(0, -2));
           const rows = data.table.rows.map(r => {
-            let datum = "-";
-            let uhrzeit = "-";
+            let zeit = "-";
             if (r.c[0] && r.c[0].v) {
               const timestamp = new Date(r.c[0].v);
               if (!isNaN(timestamp)) {
-                datum = timestamp.toLocaleDateString();
-                uhrzeit = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                zeit = timestamp.toLocaleString();
               }
             }
             const zaehler = r.c[1]?.v || "-";
             const stand = r.c[2]?.v || null;
-            return [datum, uhrzeit, zaehlernamen[zaehler] || zaehler, stand];
+            return [zeit, zaehlernamen[zaehler] || zaehler, stand];
           });
 
           const filterValue = document.getElementById('filter').value;
           const filteredRows = filterValue
-            ? rows.filter(r => r[2] === zaehlernamen[filterValue])
+            ? rows.filter(r => r[1] === zaehlernamen[filterValue])
             : rows;
 
           const dataTable = new google.visualization.DataTable();
-          dataTable.addColumn('string', 'Datum');
-          dataTable.addColumn('string', 'Uhrzeit');
+          dataTable.addColumn('string', 'Zeitstempel');
           dataTable.addColumn('string', 'Zähler');
           dataTable.addColumn('number', 'Zählerstand');
           dataTable.addRows(filteredRows);
