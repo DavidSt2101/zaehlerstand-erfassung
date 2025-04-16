@@ -6,33 +6,49 @@
   <title>Zählerstand eingeben</title>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 2em;
-      background: #f4f4f4;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      padding: 1em 1em 0.5em;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    header h1 {
+      margin: 0.2em 0 0.5em;
+      font-size: 1.5em;
+    }
+    main {
+      max-width: 500px;
+      margin: auto;
+      padding: 2em 1em;
     }
     form {
       background: white;
       padding: 2em;
-      border-radius: 8px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-    label, input, button {
+    label {
       display: block;
-      width: 100%;
-      margin-bottom: 1em;
+      margin: 1em 0 0.4em;
+      font-weight: bold;
     }
-    input {
-      font-size: 1.2em;
+    select, input, button {
+      width: 100%;
+      padding: 0.75em;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
     button {
       background: #007bff;
       color: white;
       border: none;
-      padding: 0.75em;
-      border-radius: 5px;
-      cursor: pointer;
+      margin-top: 1.5em;
     }
     button:hover {
       background: #0056b3;
@@ -59,21 +75,25 @@
   </style>
 </head>
 <body>
-  <form id="zaehlerForm">
-    <h2>Zählerstand erfassen</h2>
+  <header>
+    <h1>Zählerstand erfassen</h1>
+  </header>
 
-    <label for="zaehler_id">Zähler:</label>
-    <select id="zaehler_id" name="zaehler_id" required>
-      <option value="strom-rathaus">Rathaus Strom</option>
-      <option value="wasser-rathaus">Rathaus Wasser</option>
-      <option value="gas-rathaus">Rathaus Gas</option>
-    </select>
+  <main>
+    <form id="zaehlerForm">
+      <label for="zaehler_id">Zähler:</label>
+      <select id="zaehler_id" name="zaehler_id" required>
+        <option value="strom-rathaus">Rathaus Strom</option>
+        <option value="wasser-rathaus">Rathaus Wasser</option>
+        <option value="gas-rathaus">Rathaus Gas</option>
+      </select>
 
-    <label for="zaehlerstand">Zählerstand:</label>
-    <input type="text" id="zaehlerstand" name="zaehlerstand" required inputmode="decimal" placeholder="z. B. 1.234,56" />
+      <label for="zaehlerstand">Zählerstand:</label>
+      <input type="text" id="zaehlerstand" name="zaehlerstand" required inputmode="decimal" placeholder="z. B. 1.234,56" />
 
-    <button type="submit">Absenden</button>
-  </form>
+      <button type="submit">Absenden</button>
+    </form>
+  </main>
 
   <div class="overlay" id="overlay">
     <div class="checkmark" id="checkmark">✅</div>
@@ -95,7 +115,6 @@
 
       const zaehlerId = document.getElementById('zaehler_id').value;
       let standRaw = input.value.trim();
-
       const displayFormat = standRaw;
       let standNumeric = standRaw.replace(/\./g, "").replace(",", ".");
 
