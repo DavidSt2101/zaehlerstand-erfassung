@@ -13,13 +13,13 @@
     }
     header {
       text-align: center;
-      padding: 1em 1em 0.5em;
+      padding: 1.5em 1em 1em;
       background: white;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     header h1 {
-      margin: 0.2em 0 0.5em;
-      font-size: 1.5em;
+      margin: 0;
+      font-size: 1.6em;
     }
     main {
       max-width: 500px;
@@ -34,21 +34,24 @@
     }
     label {
       display: block;
-      margin: 1em 0 0.4em;
-      font-weight: bold;
+      margin-bottom: 0.5em;
+      font-weight: 600;
+      font-size: 1.05em;
     }
     select, input, button {
       width: 100%;
-      padding: 0.75em;
-      font-size: 1.1em;
+      padding: 0.85em;
+      font-size: 1.05em;
       border-radius: 5px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
+      margin-bottom: 1.5em;
     }
     button {
       background: #007bff;
       color: white;
       border: none;
-      margin-top: 1.5em;
+      font-weight: bold;
     }
     button:hover {
       background: #0056b3;
@@ -81,15 +84,15 @@
 
   <main>
     <form id="zaehlerForm">
-      <label for="zaehler_id">Zähler:</label>
+      <label for="zaehler_id">Zähler</label>
       <select id="zaehler_id" name="zaehler_id" required>
         <option value="strom-rathaus">Rathaus Strom</option>
         <option value="wasser-rathaus">Rathaus Wasser</option>
         <option value="gas-rathaus">Rathaus Gas</option>
       </select>
 
-      <label for="zaehlerstand">Zählerstand:</label>
-      <input type="text" id="zaehlerstand" name="zaehlerstand" required inputmode="decimal" placeholder="z. B. 1.234,56" />
+      <label for="zaehlerstand">Zählerstand</label>
+      <input type="text" id="zaehlerstand" name="zaehlerstand" required inputmode="decimal" />
 
       <button type="submit">Absenden</button>
     </form>
