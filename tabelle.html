@@ -65,7 +65,7 @@
             if (r.c[0] && r.c[0].v) {
               const timestamp = new Date(r.c[0].v);
               if (!isNaN(timestamp)) {
-                zeit = timestamp.toLocaleString();
+                zeit = timestamp.toLocaleDateString();
               }
             }
             const zaehler = r.c[1]?.v || "-";
@@ -79,7 +79,7 @@
             : rows;
 
           const dataTable = new google.visualization.DataTable();
-          dataTable.addColumn('string', 'Zeitstempel');
+          dataTable.addColumn('string', 'Datum');
           dataTable.addColumn('string', 'Zähler');
           dataTable.addColumn('number', 'Zählerstand');
           dataTable.addRows(filteredRows);
@@ -91,3 +91,4 @@
   </script>
 </body>
 </html>
+
