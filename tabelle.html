@@ -55,7 +55,9 @@
 
     document.getElementById('filter').addEventListener('change', drawTable);
 
-    function formatGerman(number) {
+    function formatGerman(value) {
+      let number = parseFloat(value.toString().replace(",", "."));
+      if (isNaN(number)) return "-";
       return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
     }
 
@@ -73,7 +75,8 @@
               }
             }
             const zaehler = r.c[1]?.v || "-";
-            const stand = typeof r.c[2]?.v === "number" ? formatGerman(r.c[2].v) : "-";
+            const rawStand = r.c[2]?.v;
+            const stand = rawStand != null ? formatGerman(rawStand) : "-";
             return [zeit, zaehlernamen[zaehler] || zaehler, stand];
           });
 
