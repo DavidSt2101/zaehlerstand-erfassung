@@ -7,75 +7,51 @@
   <style>
     body {
       font-family: sans-serif;
-      padding: 1em;
-      margin: 0;
+      padding: 2em;
       background: #f4f4f4;
     }
     form {
       background: white;
-      padding: 1.5em;
-      border-radius: 10px;
-      max-width: 100%;
-      width: 100%;
-      box-sizing: border-box;
-      margin: 1em auto;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 2em;
+      border-radius: 8px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    h2 {
-      font-size: 1.5em;
-      text-align: center;
-    }
-    label {
-      font-size: 1em;
-      margin-bottom: 0.5em;
-    }
-    input, select, button {
+    label, input, button {
       display: block;
       width: 100%;
-      font-size: 1.2em;
-      padding: 0.75em;
-      margin-bottom: 1.2em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
+      margin-bottom: 1em;
     }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-    .keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: -1em;
-      margin-bottom: 1.5em;
-    }
-    .keypad button {
-      font-size: 1.4em;
-      padding: 0.5em;
-      background: #ddd;
-      border: none;
-      border-radius: 6px;
-    }
-    .keypad button:hover {
-      background: #ccc;
-    }
-    button[type=submit] {
+    button {
       background: #007bff;
       color: white;
-      font-weight: bold;
+      border: none;
+      padding: 0.75em;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    button[type=submit]:hover {
+    button:hover {
       background: #0056b3;
     }
-    @media (min-width: 480px) {
-      form {
-        max-width: 400px;
-      }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    .checkmark {
+      font-size: 5rem;
+      color: #28a745;
+      background: white;
+      padding: 2rem;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
     }
   </style>
 </head>
@@ -83,68 +59,38 @@
   <form id="zaehlerForm">
     <h2>Zählerstand erfassen</h2>
 
-    <label for="zaehler_id">Zähler wählen:</label>
+    <label for="zaehler_id">Zähler:</label>
     <select id="zaehler_id" name="zaehler_id" required>
-      <option value="">Bitte wählen</option>
       <option value="strom-rathaus">Rathaus Strom</option>
       <option value="wasser-rathaus">Rathaus Wasser</option>
       <option value="gas-rathaus">Rathaus Gas</option>
     </select>
 
     <label for="zaehlerstand">Zählerstand:</label>
-    <input type="text" inputmode="decimal" pattern="[0-9]+([\.,][0-9]{1,2})?" id="zaehlerstand" name="zaehlerstand" required readonly />
-
-    <div class="keypad">
-      <button type="button">1</button>
-      <button type="button">2</button>
-      <button type="button">3</button>
-      <button type="button">4</button>
-      <button type="button">5</button>
-      <button type="button">6</button>
-      <button type="button">7</button>
-      <button type="button">8</button>
-      <button type="button">9</button>
-      <button type="button">,</button>
-      <button type="button">0</button>
-      <button type="button" id="backspace">←</button>
-    </div>
+    <input type="number" step="0.01" id="zaehlerstand" name="zaehlerstand" required inputmode="decimal" />
 
     <button type="submit">Absenden</button>
   </form>
 
+  <div class="overlay" id="overlay">
+    <div class="checkmark" id="checkmark">✅</div>
+  </div>
+
   <script>
-    const zaehlerNamen = {
-      'strom-rathaus': 'Rathaus Strom',
-      'wasser-rathaus': 'Rathaus Wasser',
-      'gas-rathaus': 'Rathaus Gas'
-    };
-
-    const input = document.getElementById('zaehlerstand');
-    document.querySelectorAll('.keypad button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.id === 'backspace') {
-          input.value = input.value.slice(0, -1);
-        } else {
-          input.value += btn.textContent;
-        }
-      });
-    });
-
     document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+
       const zaehlerId = document.getElementById('zaehler_id').value;
-      const stand = input.value;
+      const stand = document.getElementById('zaehlerstand').value;
 
-      if (!zaehlerId) {
-        alert('Bitte einen Zähler auswählen.');
-        return;
-      }
+      const labelMap = {
+        "strom-rathaus": "Rathaus Strom",
+        "wasser-rathaus": "Rathaus Wasser",
+        "gas-rathaus": "Rathaus Gas"
+      };
 
-      const anzeigeName = zaehlerNamen[zaehlerId] || zaehlerId;
-      const bestaetigt = confirm(`Du hast den Zählerstand "${stand}" für "${anzeigeName}" eingegeben. Ist das korrekt?`);
-      if (!bestaetigt) {
-        return;
-      }
+      const confirmText = `Du hast den Zählerstand "${stand}" für "${labelMap[zaehlerId]}" eingegeben. Ist das korrekt?`;
+      if (!confirm(confirmText)) return;
 
       await fetch('https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec', {
         method: 'POST',
@@ -152,13 +98,19 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           zaehler_id: zaehlerId,
-          zaehlerstand: stand.replace(',', '.')
+          zaehlerstand: stand
         })
       });
 
-      alert('Zählerstand erfolgreich übermittelt.');
-      input.value = '';
-      document.getElementById('zaehler_id').value = '';
+      // Zeige grünen Haken
+      const overlay = document.getElementById('overlay');
+      overlay.style.display = 'flex';
+
+      overlay.addEventListener('click', () => {
+        overlay.style.display = 'none';
+      });
+
+      document.getElementById('zaehlerstand').value = '';
     });
   </script>
 </body>
