@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zählerstand-Tabelle</title>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1em;
+      background: #f4f4f4;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+    #filter {
+      margin: 1em auto;
+      max-width: 400px;
+      display: block;
+      padding: 0.6em;
+      font-size: 1em;
+    }
+    #table_div {
+      max-width: 1000px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>Zählerstand-Übersicht</h2>
+  <select id="filter">
+    <option value="">Alle Zähler</option>
+    <option value="strom-rathaus">Rathaus Strom</option>
+    <option value="wasser-rathaus">Rathaus Wasser</option>
+    <option value="gas-rathaus">Rathaus Gas</option>
+  </select>
+
+  <div id="table_div"></div>
+
+  <script>
+    const sheetId = "1FQRGGgJsAroNv29bPdziKyd6MXmb3n-pKg0ICCh5hP4";
+    const sheetName = "Tabelle1"; // ggf. anpassen
+    const queryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=${sheetName}`;
+
+    const zaehlernamen = {
+      'strom-rathaus': 'Rathaus Strom',
+      'wasser-rathaus': 'Rathaus Wasser',
+      'gas-rathaus': 'Rathaus Gas'
+    };
+
+    google.charts.load('current', { packages: ['table'] });
+    google.charts.setOnLoadCallback(drawTable);
+
+    document.getElementById('filter').addEventListener('change', drawTable);
+
+    function drawTable() {
+      fetch(queryUrl)
+        .then(res => res.text())
+        .then(rep => {
+          const data = JSON.parse(rep.substr(47).slice(0, -2));
+          const rows = data.table.rows.map(r => {
+            const timestamp = new Date(r.c[0].v);
+            const datum = timestamp.toLocaleDateString();
+            const uhrzeit = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const zaehler = r.c[1]?.v || "";
+            const stand = r.c[2]?.v || "";
+            return [datum, uhrzeit, zaehlernamen[zaehler] || zaehler, stand];
+          });
+
+          const filterValue = document.getElementById('filter').value;
+          const filteredRows = filterValue
+            ? rows.filter(r => r[2] === zaehlernamen[filterValue])
+            : rows;
+
+          const dataTable = new google.visualization.DataTable();
+          dataTable.addColumn('string', 'Datum');
+          dataTable.addColumn('string', 'Uhrzeit');
+          dataTable.addColumn('string', 'Zähler');
+          dataTable.addColumn('number', 'Zählerstand');
+          dataTable.addRows(filteredRows);
+
+          const table = new google.visualization.Table(document.getElementById('table_div'));
+          table.draw(dataTable, { showRowNumber: true, width: '100%', height: 'auto' });
+        });
+    }
+  </script>
+</body>
+</html>
