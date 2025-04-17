@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zählerstand-Tabelle</title>
+  <title>Zählerstand-Tabelle mit Diagramm</title>
   <script src="https://www.gstatic.com/charts/loader.js"></script>
   <style>
     body {
@@ -23,9 +23,9 @@
       padding: 0.6em;
       font-size: 1em;
     }
-    #table_div {
+    #chart_div, #table_div {
       max-width: 1000px;
-      margin: auto;
+      margin: 2em auto;
     }
   </style>
 </head>
@@ -38,6 +38,7 @@
     <option value="gas-rathaus">Rathaus Gas</option>
   </select>
 
+  <div id="chart_div"></div>
   <div id="table_div"></div>
 
   <script>
@@ -51,10 +52,10 @@
       'gas-rathaus': 'Rathaus Gas'
     };
 
-    google.charts.load('current', { packages: ['table'] });
-    google.charts.setOnLoadCallback(drawTable);
+    google.charts.load('current', { packages: ['table', 'corechart'] });
+    google.charts.setOnLoadCallback(drawEverything);
 
-    document.getElementById('filter').addEventListener('change', drawTable);
+    document.getElementById('filter').addEventListener('change', drawEverything);
 
     function formatGerman(value) {
       let number = parseFloat(value.toString().replace(",", "."));
@@ -62,32 +63,61 @@
       return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
     }
 
-    function drawTable() {
+    function drawEverything() {
       fetch(queryUrl)
         .then(res => res.text())
         .then(rep => {
           const data = JSON.parse(rep.substr(47).slice(0, -2));
           const rows = data.table.rows.map(r => {
-            const zeit = r.c[0]?.f || "-"; // exakt wie im Sheet
+            const zeit = r.c[0]?.f || "-";
+            const zeitDate = r.c[0]?.v ? new Date(r.c[0].v) : null;
             const zaehler = r.c[1]?.v || "-";
             const rawStand = r.c[2]?.v;
             const stand = rawStand != null ? formatGerman(rawStand) : "-";
-            return [zeit, zaehlernamen[zaehler] || zaehler, stand];
+            const standNumber = parseFloat(rawStand);
+            return [zeit, zaehlernamen[zaehler] || zaehler, stand, zeitDate, standNumber];
           });
 
           const filterValue = document.getElementById('filter').value;
-          const filteredRows = filterValue
+          const filtered = filterValue
             ? rows.filter(r => r[1] === zaehlernamen[filterValue])
             : rows;
 
+          // Tabelle
           const dataTable = new google.visualization.DataTable();
           dataTable.addColumn('string', 'Datum & Uhrzeit');
           dataTable.addColumn('string', 'Zähler');
           dataTable.addColumn('string', 'Zählerstand');
-          dataTable.addRows(filteredRows);
+          dataTable.addRows(filtered.map(r => [r[0], r[1], r[2]]));
 
           const table = new google.visualization.Table(document.getElementById('table_div'));
           table.draw(dataTable, { showRowNumber: true, width: '100%', height: 'auto' });
+
+          // Diagramm
+          const chartDiv = document.getElementById('chart_div');
+          chartDiv.innerHTML = "";
+
+          if (filterValue) {
+            const chartData = new google.visualization.DataTable();
+            chartData.addColumn('string', 'Zeit');
+            chartData.addColumn('number', zaehlernamen[filterValue]);
+
+            const chartRows = filtered
+              .filter(r => r[3] && !isNaN(r[4]))
+              .sort((a, b) => a[3] - b[3])
+              .map(r => [r[0], r[4]]);
+              
+            chartData.addRows(chartRows);
+
+            const chart = new google.visualization.ColumnChart(chartDiv);
+            chart.draw(chartData, {
+              title: 'Zählerstand-Verlauf: ' + zaehlernamen[filterValue],
+              hAxis: { title: 'Zeit', slantedText: true, slantedTextAngle: 45 },
+              vAxis: { title: 'Zählerstand' },
+              legend: 'none',
+              height: 400
+            });
+          }
         });
     }
   </script>
