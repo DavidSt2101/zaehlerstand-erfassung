@@ -3,64 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zählerstand eingeben</title>
+  <title>Zählerstände Kita Stadtzentrum</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
+    body {
       font-family: 'Segoe UI', sans-serif;
       background: #f9f9f9;
+      padding: 1em;
       color: #333;
     }
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-    header {
+    h1 {
       text-align: center;
-      padding: 1.5em 1em 1em;
-      background: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.8em;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1em;
+      margin-bottom: 1em;
     }
     form {
+      max-width: 600px;
+      margin: auto;
       background: white;
       padding: 2em;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      width: 100%;
-      max-width: 500px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     label {
       display: block;
-      margin-bottom: 0.5em;
-      font-weight: 600;
-      font-size: 1.2em;
+      margin: 1.2em 0 0.4em;
+      font-weight: bold;
     }
-    select, input, button {
+    input {
       width: 100%;
-      padding: 1em;
-      font-size: 1.2em;
-      border-radius: 6px;
+      padding: 0.8em;
+      font-size: 1.1em;
+      border-radius: 5px;
       border: 1px solid #ccc;
-      box-sizing: border-box;
-      margin-bottom: 1.5em;
     }
     button {
+      margin-top: 2em;
+      width: 100%;
+      padding: 1em;
       background: #007bff;
       color: white;
+      font-size: 1.2em;
       border: none;
+      border-radius: 6px;
       font-weight: bold;
     }
     button:hover {
@@ -88,104 +71,67 @@
   </style>
 </head>
 <body>
-  <header>
-    <h1>Zählerstand erfassen</h1>
-  </header>
+  <h1>Kita Stadtzentrum – Zählerstände</h1>
+  <form id="multiForm">
+    <label for="strom">Strom</label>
+    <input type="text" id="strom" name="strom" inputmode="decimal" />
 
-  <main>
-    <form id="zaehlerForm">
-      <label for="zaehler_id">Zähler</label>
-      <select id="zaehler_id" name="zaehler_id" required>
-        <option value="strom-rathaus">Rathaus Strom</option>
-        <option value="wasser-rathaus">Rathaus Wasser</option>
-        <option value="gas-rathaus">Rathaus Gas</option>
-        <option value="bauhof-waerme">Bauhof Wärme</option>
-        <option value="bauhof-strom">Bauhof Strom</option>
-        <option value="bauhof-wasser">Bauhof Wasser</option>
-        <option value="kita-stadtzentrum-waerme">Kita Stadtzentrum Wärme</option>
-        <option value="kita-stadtzentrum-strom">Kita Stadtzentrum Strom</option>
-        <option value="kita-stadtzentrum-wasser">Kita Stadtzentrum Wasser</option>
-      </select>
+    <label for="wasser">Wasser</label>
+    <input type="text" id="wasser" name="wasser" inputmode="decimal" />
 
-      <label for="zaehlerstand">Zählerstand</label>
-      <input type="text" id="zaehlerstand" name="zaehlerstand" required inputmode="decimal" />
+    <label for="waerme">Wärme</label>
+    <input type="text" id="waerme" name="waerme" inputmode="decimal" />
 
-      <button type="submit">Absenden</button>
-    </form>
-  </main>
+    <button type="submit">Alle absenden</button>
+  </form>
 
   <div class="overlay" id="overlay">
-    <div class="checkmark" id="checkmark">✅</div>
+    <div class="checkmark">✅</div>
   </div>
 
   <script>
-    function getParam(name) {
-      const url = new URL(window.location.href);
-      return url.searchParams.get(name);
+    function parseGerman(value) {
+      if (!value) return null;
+      let clean = value.replace(/\./g, "").replace(",", ".");
+      let num = parseFloat(clean);
+      return isNaN(num) ? null : num;
     }
 
-    const input = document.getElementById("zaehlerstand");
-    const select = document.getElementById("zaehler_id");
-
-    // QR-Code/URL-Parameter prüfen
-    const vorwahl = getParam("zaehler");
-    if (vorwahl) {
-      select.value = vorwahl;
-    }
-
-    input.addEventListener("input", function () {
-      let val = this.value.replace(/[^0-9,]/g, "");
-      let parts = val.split(",");
-      let intPart = parts[0].replace(/^0+/, '') || "0";
-      intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-      this.value = parts.length > 1 ? intPart + "," + parts[1].substring(0, 2) : intPart;
-    });
-
-    document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
+    document.getElementById("multiForm").addEventListener("submit", async function(e) {
       e.preventDefault();
+      const strom = parseGerman(document.getElementById("strom").value);
+      const wasser = parseGerman(document.getElementById("wasser").value);
+      const waerme = parseGerman(document.getElementById("waerme").value);
 
-      const zaehlerId = select.value;
-      let standRaw = input.value.trim();
-      const displayFormat = standRaw;
-      let standNumeric = standRaw.replace(/\./g, "").replace(",", ".");
+      const entries = [
+        { id: "kita-stadtzentrum-strom", value: strom },
+        { id: "kita-stadtzentrum-wasser", value: wasser },
+        { id: "kita-stadtzentrum-waerme", value: waerme }
+      ];
 
-      if (isNaN(parseFloat(standNumeric))) {
-        alert("Bitte gib einen gültigen Zählerstand ein (z. B. 1.234,56)");
-        return;
+      for (const entry of entries) {
+        if (entry.value !== null) {
+          await fetch("https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec", {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              zaehler_id: entry.id,
+              zaehlerstand: entry.value
+            })
+          });
+        }
       }
 
-      const labelMap = {
-        "strom-rathaus": "Rathaus Strom",
-        "wasser-rathaus": "Rathaus Wasser",
-        "gas-rathaus": "Rathaus Gas",
-        "bauhof-waerme": "Bauhof Wärme",
-        "bauhof-strom": "Bauhof Strom",
-        "bauhof-wasser": "Bauhof Wasser",
-        "kita-stadtzentrum-waerme": "Kita Stadtzentrum Wärme",
-        "kita-stadtzentrum-strom": "Kita Stadtzentrum Strom",
-        "kita-stadtzentrum-wasser": "Kita Stadtzentrum Wasser"
-      };
+      document.getElementById("strom").value = "";
+      document.getElementById("wasser").value = "";
+      document.getElementById("waerme").value = "";
 
-      const confirmText = `Du hast den Zählerstand "${displayFormat}" für "${labelMap[zaehlerId]}" eingegeben. Ist das korrekt?`;
-      if (!confirm(confirmText)) return;
-
-      await fetch('https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec', {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          zaehler_id: zaehlerId,
-          zaehlerstand: standNumeric
-        })
+      const overlay = document.getElementById("overlay");
+      overlay.style.display = "flex";
+      overlay.addEventListener("click", () => {
+        overlay.style.display = "none";
       });
-
-      const overlay = document.getElementById('overlay');
-      overlay.style.display = 'flex';
-      overlay.addEventListener('click', () => {
-        overlay.style.display = 'none';
-      });
-
-      input.value = '';
     });
   </script>
 </body>
