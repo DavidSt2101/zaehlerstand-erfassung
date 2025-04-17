@@ -63,15 +63,12 @@
     }
 
     function extractDateTime(raw) {
-      if (!raw) return ["-", "-"];
+      if (!raw) return "-";
       const d = new Date(raw);
       if (!isNaN(d)) {
-        const date = d.toLocaleDateString("de-DE");
-        const time = d.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' });
-        return [date, time];
+        return d.toLocaleString("de-DE").replace(",", "");
       }
-      const [datePart, timePart] = raw.toString().split(" ");
-      return [datePart || "-", timePart?.substring(0,5) || "-"];
+      return raw.toString();
     }
 
     function drawTable() {
@@ -80,21 +77,20 @@
         .then(rep => {
           const data = JSON.parse(rep.substr(47).slice(0, -2));
           const rows = data.table.rows.map(r => {
-            const [datum, uhrzeit] = extractDateTime(r.c[0]?.v);
+            const zeit = extractDateTime(r.c[0]?.v);
             const zaehler = r.c[1]?.v || "-";
             const rawStand = r.c[2]?.v;
             const stand = rawStand != null ? formatGerman(rawStand) : "-";
-            return [datum, uhrzeit, zaehlernamen[zaehler] || zaehler, stand];
+            return [zeit, zaehlernamen[zaehler] || zaehler, stand];
           });
 
           const filterValue = document.getElementById('filter').value;
           const filteredRows = filterValue
-            ? rows.filter(r => r[2] === zaehlernamen[filterValue])
+            ? rows.filter(r => r[1] === zaehlernamen[filterValue])
             : rows;
 
           const dataTable = new google.visualization.DataTable();
-          dataTable.addColumn('string', 'Datum');
-          dataTable.addColumn('string', 'Uhrzeit');
+          dataTable.addColumn('string', 'Datum & Uhrzeit');
           dataTable.addColumn('string', 'Zähler');
           dataTable.addColumn('string', 'Zählerstand');
           dataTable.addRows(filteredRows);
