@@ -119,7 +119,19 @@
   </div>
 
   <script>
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
     const input = document.getElementById("zaehlerstand");
+    const select = document.getElementById("zaehler_id");
+
+    // QR-Code/URL-Parameter prüfen
+    const vorwahl = getParam("zaehler");
+    if (vorwahl) {
+      select.value = vorwahl;
+    }
 
     input.addEventListener("input", function () {
       let val = this.value.replace(/[^0-9,]/g, "");
@@ -132,7 +144,7 @@
     document.getElementById('zaehlerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const zaehlerId = document.getElementById('zaehler_id').value;
+      const zaehlerId = select.value;
       let standRaw = input.value.trim();
       const displayFormat = standRaw;
       let standNumeric = standRaw.replace(/\./g, "").replace(",", ".");
