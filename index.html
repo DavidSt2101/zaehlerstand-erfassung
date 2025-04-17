@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -14,6 +15,11 @@
     h1 {
       text-align: center;
       margin-bottom: 1em;
+      font-size: 1.8em;
+    }
+    h2 {
+      font-size: 1.4em;
+      margin-top: 1.8em;
     }
     form {
       max-width: 650px;
@@ -25,15 +31,17 @@
     }
     label {
       display: block;
-      margin: 1.2em 0 0.4em;
+      margin: 1em 0 0.4em;
       font-weight: bold;
+      font-size: 1.1em;
     }
     input {
       width: 100%;
-      padding: 0.8em;
+      padding: 1em;
       font-size: 1.1em;
       border-radius: 6px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
     select, button {
       width: 100%;
@@ -45,6 +53,7 @@
       background: #007bff;
       color: white;
       font-weight: bold;
+      box-sizing: border-box;
     }
     button:hover {
       background: #0056b3;
@@ -70,6 +79,17 @@
       padding: 2rem;
       border-radius: 50%;
       box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5em;
+      }
+      h2 {
+        font-size: 1.2em;
+      }
+      label, input, select, button {
+        font-size: 1em;
+      }
     }
   </style>
 </head>
@@ -133,9 +153,8 @@
     function showBuilding(buildingId) {
       gebaeudeSelect.value = buildingId;
       sections.forEach(sec => sec.style.display = "none");
-      const selected = buildingId;
-      if (selected) {
-        document.getElementById(selected).style.display = "block";
+      if (buildingId) {
+        document.getElementById(buildingId).style.display = "block";
       }
     }
 
