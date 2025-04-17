@@ -99,6 +99,12 @@
         <option value="strom-rathaus">Rathaus Strom</option>
         <option value="wasser-rathaus">Rathaus Wasser</option>
         <option value="gas-rathaus">Rathaus Gas</option>
+        <option value="bauhof-waerme">Bauhof Wärme</option>
+        <option value="bauhof-strom">Bauhof Strom</option>
+        <option value="bauhof-wasser">Bauhof Wasser</option>
+        <option value="kita-stadtzentrum-waerme">Kita Stadtzentrum Wärme</option>
+        <option value="kita-stadtzentrum-strom">Kita Stadtzentrum Strom</option>
+        <option value="kita-stadtzentrum-wasser">Kita Stadtzentrum Wasser</option>
       </select>
 
       <label for="zaehlerstand">Zählerstand</label>
@@ -139,7 +145,13 @@
       const labelMap = {
         "strom-rathaus": "Rathaus Strom",
         "wasser-rathaus": "Rathaus Wasser",
-        "gas-rathaus": "Rathaus Gas"
+        "gas-rathaus": "Rathaus Gas",
+        "bauhof-waerme": "Bauhof Wärme",
+        "bauhof-strom": "Bauhof Strom",
+        "bauhof-wasser": "Bauhof Wasser",
+        "kita-stadtzentrum-waerme": "Kita Stadtzentrum Wärme",
+        "kita-stadtzentrum-strom": "Kita Stadtzentrum Strom",
+        "kita-stadtzentrum-wasser": "Kita Stadtzentrum Wasser"
       };
 
       const confirmText = `Du hast den Zählerstand "${displayFormat}" für "${labelMap[zaehlerId]}" eingegeben. Ist das korrekt?`;
