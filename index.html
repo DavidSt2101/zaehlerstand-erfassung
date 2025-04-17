@@ -84,43 +84,35 @@
       <option value="rathaus">Rathaus</option>
     </select>
 
-    <section id='kita-stadtzentrum' style='display:none;'>
-<h2>Kita Stadtzentrum</h2>
+    <section id="kita-stadtzentrum" style="display:none;">
+      <h2>Kita Stadtzentrum</h2>
+      <label for="kita-stadtzentrum-strom">Kita Stadtzentrum Strom</label>
+      <input type="text" id="kita-stadtzentrum-strom" inputmode="decimal" />
+      <label for="kita-stadtzentrum-wasser">Kita Stadtzentrum Wasser</label>
+      <input type="text" id="kita-stadtzentrum-wasser" inputmode="decimal" />
+      <label for="kita-stadtzentrum-waerme">Kita Stadtzentrum Wärme</label>
+      <input type="text" id="kita-stadtzentrum-waerme" inputmode="decimal" />
+    </section>
 
-        <label for="kita-stadtzentrum-strom">Kita Stadtzentrum Strom</label>
-        <input type="text" id="kita-stadtzentrum-strom" name="kita-stadtzentrum-strom" inputmode="decimal" />
-        
-        <label for="kita-stadtzentrum-wasser">Kita Stadtzentrum Wasser</label>
-        <input type="text" id="kita-stadtzentrum-wasser" name="kita-stadtzentrum-wasser" inputmode="decimal" />
-        
-        <label for="kita-stadtzentrum-waerme">Kita Stadtzentrum Waerme</label>
-        <input type="text" id="kita-stadtzentrum-waerme" name="kita-stadtzentrum-waerme" inputmode="decimal" />
-        </section>
-<section id='bauhof' style='display:none;'>
-<h2>Bauhof</h2>
+    <section id="bauhof" style="display:none;">
+      <h2>Bauhof</h2>
+      <label for="bauhof-strom">Bauhof Strom</label>
+      <input type="text" id="bauhof-strom" inputmode="decimal" />
+      <label for="bauhof-wasser">Bauhof Wasser</label>
+      <input type="text" id="bauhof-wasser" inputmode="decimal" />
+      <label for="bauhof-waerme">Bauhof Wärme</label>
+      <input type="text" id="bauhof-waerme" inputmode="decimal" />
+    </section>
 
-        <label for="bauhof-strom">Bauhof Strom</label>
-        <input type="text" id="bauhof-strom" name="bauhof-strom" inputmode="decimal" />
-        
-        <label for="bauhof-wasser">Bauhof Wasser</label>
-        <input type="text" id="bauhof-wasser" name="bauhof-wasser" inputmode="decimal" />
-        
-        <label for="bauhof-waerme">Bauhof Waerme</label>
-        <input type="text" id="bauhof-waerme" name="bauhof-waerme" inputmode="decimal" />
-        </section>
-<section id='rathaus' style='display:none;'>
-<h2>Rathaus</h2>
-
-        <label for="rathaus-strom">Rathaus Strom</label>
-        <input type="text" id="rathaus-strom" name="rathaus-strom" inputmode="decimal" />
-        
-        <label for="rathaus-wasser">Rathaus Wasser</label>
-        <input type="text" id="rathaus-wasser" name="rathaus-wasser" inputmode="decimal" />
-        
-        <label for="rathaus-gas">Rathaus Gas</label>
-        <input type="text" id="rathaus-gas" name="rathaus-gas" inputmode="decimal" />
-        </section>
-
+    <section id="rathaus" style="display:none;">
+      <h2>Rathaus</h2>
+      <label for="rathaus-strom">Rathaus Strom</label>
+      <input type="text" id="rathaus-strom" inputmode="decimal" />
+      <label for="rathaus-wasser">Rathaus Wasser</label>
+      <input type="text" id="rathaus-wasser" inputmode="decimal" />
+      <label for="rathaus-gas">Rathaus Gas</label>
+      <input type="text" id="rathaus-gas" inputmode="decimal" />
+    </section>
 
     <button type="submit">Alle absenden</button>
   </form>
@@ -130,15 +122,32 @@
   </div>
 
   <script>
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
     const gebaeudeSelect = document.getElementById("gebaeude");
     const sections = document.querySelectorAll("section");
 
-    gebaeudeSelect.addEventListener("change", () => {
+    function showBuilding(buildingId) {
+      gebaeudeSelect.value = buildingId;
       sections.forEach(sec => sec.style.display = "none");
-      const selected = gebaeudeSelect.value;
+      const selected = buildingId;
       if (selected) {
         document.getElementById(selected).style.display = "block";
       }
+    }
+
+    const autoGebaeude = getParam("gebaeude");
+    if (autoGebaeude) {
+      window.addEventListener("DOMContentLoaded", () => {
+        showBuilding(autoGebaeude);
+      });
+    }
+
+    gebaeudeSelect.addEventListener("change", () => {
+      showBuilding(gebaeudeSelect.value);
     });
 
     function parseGerman(value) {
@@ -153,29 +162,22 @@
       const gebaeude = gebaeudeSelect.value;
       if (!gebaeude) return;
 
-      const eingaben = {};
       const inputs = document.querySelectorAll(`#${gebaeude} input`);
-      inputs.forEach(input => {
-        const id = input.id;
+      for (const input of inputs) {
         const value = parseGerman(input.value);
         if (value !== null) {
-          eingaben[id] = value;
+          await fetch("https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec", {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              zaehler_id: input.id,
+              zaehlerstand: value
+            })
+          });
         }
-      });
-
-      for (const [fullId, val] of Object.entries(eingaben)) {
-        await fetch("https://script.google.com/macros/s/AKfycbxt49pAvJVTj7h90AVAWuTUMSucnPva3wuIjz7jhA119kQk7p2LTaEOn45hjDcwJluLSA/exec", {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            zaehler_id: fullId,
-            zaehlerstand: val
-          })
-        });
+        input.value = "";
       }
-
-      inputs.forEach(input => input.value = "");
 
       const overlay = document.getElementById("overlay");
       overlay.style.display = "flex";
