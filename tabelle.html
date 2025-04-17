@@ -62,22 +62,13 @@
       return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(number);
     }
 
-    function extractDateTime(raw) {
-      if (!raw) return "-";
-      const d = new Date(raw);
-      if (!isNaN(d)) {
-        return d.toLocaleString("de-DE").replace(",", "");
-      }
-      return raw.toString();
-    }
-
     function drawTable() {
       fetch(queryUrl)
         .then(res => res.text())
         .then(rep => {
           const data = JSON.parse(rep.substr(47).slice(0, -2));
           const rows = data.table.rows.map(r => {
-            const zeit = extractDateTime(r.c[0]?.v);
+            const zeit = r.c[0]?.f || "-"; // exakt wie im Sheet
             const zaehler = r.c[1]?.v || "-";
             const rawStand = r.c[2]?.v;
             const stand = rawStand != null ? formatGerman(rawStand) : "-";
